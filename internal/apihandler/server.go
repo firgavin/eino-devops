@@ -70,6 +70,7 @@ func registerRoutes(r *mux.Router) {
 	debugR.Path("/input_types").HandlerFunc(ListInputTypes).Methods(http.MethodGet)
 	debugR.Path("/graphs").HandlerFunc(ListGraphs).Methods(http.MethodGet)
 	debugR.Path("/graphs/{graph_id}/canvas").HandlerFunc(GetCanvasInfo).Methods(http.MethodGet)
+	debugR.Path("/graphs/{graph_id}/vision").HandlerFunc(GetVision).Methods(http.MethodGet)
 	debugR.Path("/graphs/{graph_id}/threads").HandlerFunc(CreateDebugThread).Methods(http.MethodPost)
 	debugR.Path("/graphs/{graph_id}/threads/{thread_id}/stream").HandlerFunc(StreamDebugRun).Methods(http.MethodPost)
 }
@@ -232,6 +233,10 @@ func getPathParam(req *http.Request, key string) string {
 
 func getReqQuery(r *http.Request, key string) string {
 	return r.URL.Query().Get(key)
+}
+
+func hasReqQuery(r *http.Request, key string) bool {
+	return r.URL.Query().Has(key)
 }
 
 func getReqFromBody[T any](r *http.Request) (*T, error) {

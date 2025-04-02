@@ -26,6 +26,7 @@ import (
 	"github.com/firgavin/eino-devops/internal/apihandler/types"
 	"github.com/firgavin/eino-devops/internal/model"
 	"github.com/firgavin/eino-devops/internal/service"
+	ghc "github.com/firgavin/eino-devops/internal/utils/graphconvertor"
 	"github.com/firgavin/eino-devops/internal/utils/log"
 	"github.com/firgavin/eino-devops/internal/utils/safego"
 	devmodel "github.com/firgavin/eino-devops/model"
@@ -71,6 +72,47 @@ func GetCanvasInfo(res http.ResponseWriter, req *http.Request) {
 	newHTTPResp(resp).doResp(res)
 }
 
+// Getvision use graph id to convert canvasInfo to d2 and ouput svg
+func GetVision(res http.ResponseWriter, req *http.Request) {
+	var (
+		graphID    string
+		ok         bool
+		err        error
+		canvasInfo devmodel.CanvasInfo
+	)
+
+	graphID = getPathParam(req, "graph_id")
+	if len(graphID) == 0 {
+		newHTTPResp(newBizError(http.StatusBadRequest, fmt.Errorf("graph_name is empty")), newBaseResp(http.StatusBadRequest, "")).doResp(res)
+		return
+	}
+
+	canvasInfo, ok = service.ContainerSVC.GetCanvas(graphID)
+	if !ok {
+		canvasInfo, err = service.ContainerSVC.CreateCanvas(graphID)
+		if err != nil {
+			newHTTPResp(newBizError(http.StatusBadRequest, err), newBaseResp(http.StatusBadRequest, "")).doResp(res)
+			return
+		}
+	}
+
+	d2Graph, err := ghc.GenerateD2FromGraphSchema(canvasInfo.GraphSchema)
+	if err != nil {
+		newHTTPResp(newBizError(http.StatusBadRequest, err), newBaseResp(http.StatusBadRequest, "")).doResp(res)
+		return
+	}
+
+	withLeeching := hasReqQuery(req, "leeching")
+	var opts []ghc.Option
+	if withLeeching {
+		opts = append(opts, ghc.WithLeeching())
+	}
+
+	d2svg, _ := ghc.Dot2SVG(d2Graph, opts...)
+
+	res.Write(d2svg)
+}
+
 // CreateDebugThread create thread_id.
 func CreateDebugThread(res http.ResponseWriter, req *http.Request) {
 	err := validateCreateDebugThreadRequest(req)
@@ -79,7 +121,7 @@ func CreateDebugThread(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var graphID = getPathParam(req, "graph_id")
+	graphID := getPathParam(req, "graph_id")
 
 	threadID, err := service.DebugSVC.CreateDebugThread(req.Context(), graphID)
 	if err != nil {

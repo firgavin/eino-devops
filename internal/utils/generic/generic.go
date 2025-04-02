@@ -46,3 +46,7 @@ func SliceContains[T comparable](s []T, v T) bool {
 	}
 	return false
 }
+
+func PtrOf[T any](v T) *T {
+	return &v
+}

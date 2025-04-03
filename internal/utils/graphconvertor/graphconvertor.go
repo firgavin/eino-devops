@@ -14,7 +14,7 @@ import (
 	"github.com/firgavin/eino-devops/model/d2"
 
 	"oss.terrastruct.com/d2/d2graph"
-	"oss.terrastruct.com/d2/d2layouts/d2dagrelayout"
+	"oss.terrastruct.com/d2/d2layouts/d2elklayout"
 	"oss.terrastruct.com/d2/d2lib"
 	"oss.terrastruct.com/d2/d2renderers/d2svg"
 	"oss.terrastruct.com/d2/d2themes/d2themescatalog"
@@ -292,6 +292,7 @@ classes: {
     }
   }
 }
+direction: right
 `
 }
 
@@ -364,12 +365,12 @@ func Dot2SVG(graphString string, opts ...Option) ([]byte, error) {
 
 	ruler, _ := textmeasure.NewRuler()
 	layoutResolver := func(engine string) (d2graph.LayoutGraph, error) {
-		return d2dagrelayout.DefaultLayout, nil
+		return d2elklayout.DefaultLayout, nil
 	}
 	renderOpts := &d2svg.RenderOpts{
 		Pad:     go2.Pointer(int64(5)),
 		Center:  generic.PtrOf(true),
-		ThemeID: &d2themescatalog.GrapeSoda.ID,
+		ThemeID: &d2themescatalog.NeutralDefault.ID,
 	}
 	compileOpts := &d2lib.CompileOptions{
 		LayoutResolver: layoutResolver,

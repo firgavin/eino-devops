@@ -44,6 +44,7 @@ func StartHTTPServer(_ context.Context, port string) error {
 		r := mux.NewRouter()
 		registerRoutes(r)
 		registerVisualizeRoutes(r)
+		registerVisionPageRouter(r)
 		err = http.ListenAndServe(":"+port, r)
 		if err != nil {
 			log.Errorf("start debug http server failed, err=%v", err)
@@ -73,6 +74,11 @@ func registerRoutes(r *mux.Router) {
 	debugR.Path("/graphs/{graph_id}/vision").HandlerFunc(GetVision).Methods(http.MethodGet)
 	debugR.Path("/graphs/{graph_id}/threads").HandlerFunc(CreateDebugThread).Methods(http.MethodPost)
 	debugR.Path("/graphs/{graph_id}/threads/{thread_id}/stream").HandlerFunc(StreamDebugRun).Methods(http.MethodPost)
+}
+
+func registerVisionPageRouter(r *mux.Router) {
+	debugR := r.PathPrefix("/debug/v2").Subrouter()
+	debugR.Path("/vision").HandlerFunc(GetVisionPage).Methods(http.MethodGet)
 }
 
 type HTTPResp struct {

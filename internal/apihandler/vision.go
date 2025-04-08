@@ -42,6 +42,9 @@ const visionPageTemplate = `
         <select id="graph-select">
             <option value="">-- Select a graph --</option>
         </select>
+        <label for="leeching-checkbox" style="margin-left: 15px;">
+            <input type="checkbox" id="leeching-checkbox"> Leeching
+        </label>
         <span id="loading">Loading...</span>
     </div>
     <div id="visualization"></div>
@@ -74,6 +77,7 @@ const visionPageTemplate = `
             const graphId = e.target.value;
             const visDiv = document.getElementById('visualization');
             const loading = document.getElementById('loading');
+            const isLeeching = document.getElementById('leeching-checkbox').checked;
             
             if (!graphId) {
                 visDiv.innerHTML = '<p>Please select a graph to visualize.</p>';
@@ -84,7 +88,12 @@ const visionPageTemplate = `
                 loading.style.display = 'inline';
                 visDiv.innerHTML = '';
                 
-                const response = await fetch('/eino/devops/debug/v1/graphs/' + graphId + '/vision');
+                // Modify the URL based on the leeching checkbox state
+                const endpoint = isLeeching ? 
+                    '/eino/devops/debug/v1/graphs/' + graphId + '/vision?leeching' : 
+                    '/eino/devops/debug/v1/graphs/' + graphId + '/vision';
+                
+                const response = await fetch(endpoint);
                 const svgText = await response.text();
                 
                 visDiv.innerHTML = svgText;
